@@ -3,9 +3,9 @@ import { Image, Video, FileText } from "lucide-react";
 import PostTypeStore from "../store/PostTypeStore";
 
 const postTypes = [
-  { id: 0, name: "Static", icon: Image },
-  { id: 1, name: "Reel", icon: Video },
-  { id: 2, name: "Carousel", icon: FileText },
+  { id: 0, name: "static", icon: Image },
+  { id: 1, name: "reels", icon: Video },
+  { id: 2, name: "carousel", icon: FileText },
 ];
 
 const PostTypeSelector = () => {
@@ -18,7 +18,7 @@ const PostTypeSelector = () => {
         {postTypes.map((type) => (
           <button
             key={type.id}
-            onClick={() => setSelectedPostType(type.id)}
+            onClick={() => setSelectedPostType(type.name)}
             className="flex flex-col items-center p-5 bg-white border rounded-lg shadow-md hover:bg-indigo-100 transition duration-300 ease-in-out"
           >
             <type.icon className="w-10 h-10 text-indigo-600 mb-3" />
