@@ -4,6 +4,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const LangflowClient = require("./utils/langflowclient");
+const { DataAPIClient } = require("@datastax/astra-db-ts");
 
 const app = express();
 
@@ -199,11 +200,9 @@ app.get("/api/test", async (req, res) => {
           tweaks,
           stream,
           (data) => {
-              console.log("Received Stream Data:", data.chunk); // Handle streaming data
               res.write(JSON.stringify(data.chunk) + '\n');    // Send chunked data to the client
           },
           () => {
-              console.log("Stream Closed"); // Handle stream close
               res.end(); // Close the response stream
           },
           (error) => {
@@ -227,8 +226,90 @@ app.get("/api/test", async (req, res) => {
 });
 
 
+// Initialize AstraDB Client
+const client = new DataAPIClient(process.env.ASTRA_DB_TOKEN); 
+const db = client.db(process.env.ASTRA_DB_URL, { keyspace: "hackathon" });
+
+// POST type mapping
+const postTypeMapping = {
+  0: "Reels",
+  1: "Static",
+  2: "Carousel",
+};
+
+// Verify Database Connection
+(async () => {
+  try {
+    const collections = await db.listCollections();
+    console.log("Connected to AstraDB");
+  } catch (error) {
+    console.error("Error connecting to AstraDB:", error);
+  }
+})();
+
+// API Endpoint
+app.get("/api/stats", async (req, res) => {
+    try {
+      // Access the collection
+      const collection = db.collection("social_media"); // Replace 'social_media' with your actual collection name
+  
+      // Fetch all documents and convert cursor to an array
+      const docs = await collection.find({}).toArray(); // Use `toArray()` to get all documents as an array
+  
+      // POST type mapping
+      const postTypeMapping = {
+         0 : "Carousel",
+         1 : "Reels",
+         2 : "Static"   
+      };
+  
+      // Initialize totals and counts for each post type
+      const postTypeData = {
+        
+        
+        Static: { totalLikes: 0, totalComments: 0, totalShares: 0, totalBookmarked: 0, count: 0 },
+        Reels: { totalLikes: 0, totalComments: 0, totalShares: 0, totalBookmarked: 0, count: 0 },
+        Carousel: { totalLikes: 0, totalComments: 0, totalShares: 0, totalBookmarked: 0, count: 0 }
+      };
+  
+      // Iterate through documents to accumulate totals
+      docs.forEach((doc) => {
+        const postType = postTypeMapping[doc.Post_Type] || "Unknown";
+  
+        if (postTypeData[postType]) {
+          postTypeData[postType].totalLikes += doc.Likes || 0;
+          postTypeData[postType].totalComments += doc.Comments || 0;
+          postTypeData[postType].totalShares += doc.Shares || 0;
+          postTypeData[postType].totalBookmarked += doc.Bookmarked || 0;
+          postTypeData[postType].count += 1;
+        }
+      });
+  
+      // Calculate averages
+      const averages = Object.entries(postTypeData).map(([postType, data]) => {
+        const { totalLikes, totalComments, totalShares, totalBookmarked, count } = data;
+  
+        return {
+          postType,
+          avgLikes: count ? totalLikes / count : 0,
+          avgComments: count ? totalComments / count : 0,
+          avgShares: count ? totalShares / count : 0,
+          avgBookmarked: count ? totalBookmarked / count : 0,
+        };
+      });
+  
+      // Return averages as JSON response
+      res.status(200).json({ averages });
+      
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
 
+
+  
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
