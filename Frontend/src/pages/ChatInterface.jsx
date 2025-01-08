@@ -26,9 +26,9 @@ const ChatInterface = () => {
 
     try {
       // API calls to fetch stats
-      const API_URL = `https://hackathonassignment.onrender.com//api/test?post_type=${selectedType}`;
+      const API_URL = `https://hackathonassignment.onrender.com/api/test?post_type=${selectedType}`;
       const response = await axios.get(API_URL);
-      const API_URL2 = `https://hackathonassignment.onrender.com//api/stats`;
+      const API_URL2 = `https://hackathonassignment.onrender.com/api/stats`;
       const response2 = await axios.get(API_URL2);
       setAverages(response2.data.averages); // Store stats
 
