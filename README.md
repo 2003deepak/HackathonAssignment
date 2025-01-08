@@ -12,7 +12,7 @@ Click the thumbnail below to watch the working video of the project:
 
 <br>
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=jFdH57cszEA&ab_channel=DeepakKumar">
+  <a href="https://www.youtube.com/watch?v=jFdH57cszEA&ab_channel=DeepakKumar" target="_blank">
     <img src="https://img.youtube.com/vi/jFdH57cszEA/0.jpg" alt="Working Video">
   </a>
 </p>
